@@ -16,8 +16,8 @@ requires action outside the repo.
   `${CLAUDE_PLUGIN_ROOT}`-quoted command path.
 - Logic: [`plugins/digitalocean-internal/lib/mcp-tier-policy.mjs`](plugins/digitalocean-internal/lib/mcp-tier-policy.mjs)
   loads `policy/approval-tiers-*.json` from the plugin root; Tier 1 → `allow`,
-  Tier 2–4 → `ask` with target summary from `tool_input`, unmapped writes →
-  `deny`.
+  Tier 2–4 → `ask` with target summary from `tool_input`; unmapped tools →
+  `deny` (only mapped Tier 1 and unmapped `region-list` are allowed).
 - Unit tests: [`tests/test_mcp_tier_policy.mjs`](tests/test_mcp_tier_policy.mjs).
 - README documents verification steps and the Cursor **2.4.x `ask` ignored** caveat.
 
@@ -30,7 +30,8 @@ mandatory defense in depth.
 
 - Skill rule: unmapped writes are Tier 3 in
   [`skills/digitalocean-safety/SKILL.md`](skills/digitalocean-safety/SKILL.md).
-- Hook denies unmapped writes (allows read-shaped tool names).
+- Hook denies any unmapped tool (no name-pattern bypass); only mapped Tier 1
+  and `region-list` without a row are allowed.
 - New maps (upstream `8ce21db`):
   - [`approval-tiers-accounts.json`](plugins/digitalocean-internal/policy/approval-tiers-accounts.json)
     (`key-create` elevated to Tier 3)
