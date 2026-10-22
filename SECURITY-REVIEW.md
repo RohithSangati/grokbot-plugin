@@ -37,6 +37,9 @@ mandatory defense in depth.
   - [`approval-tiers-networking.json`](plugins/digitalocean-internal/policy/approval-tiers-networking.json)
   - [`approval-tiers-databases.json`](plugins/digitalocean-internal/policy/approval-tiers-databases.json)
   - [`approval-tiers-apps.json`](plugins/digitalocean-internal/policy/approval-tiers-apps.json)
+  - [`approval-tiers-insights.json`](plugins/digitalocean-internal/policy/approval-tiers-insights.json)
+  - [`approval-tiers-docs.json`](plugins/digitalocean-internal/policy/approval-tiers-docs.json)
+    (all tools upstream read-only, Tier 1; hook denies unlisted docs tools)
 - Generator: [`scripts/bootstrap-tier-maps.mjs`](scripts/bootstrap-tier-maps.mjs)
 
 ## 3. Policy from plugin root; maintainer sync out of runtime skills
@@ -66,14 +69,14 @@ never accept PAT in chat, revoke guidance, connection strings handling; **Apps**
 
 **Done** (integration eval sources; run in agent-plugins monorepo with skill-tools):
 
-| Case                        | File                                                                   |
-| --------------------------- | ---------------------------------------------------------------------- |
-| Droplet name injection      | `skills/digitalocean-safety/evals/test_digitalocean_safety_evals.py`   |
-| Log line delete instruction | same                                                                   |
-| Target switch after confirm | same                                                                   |
-| Bulk tag production         | same                                                                   |
-| Unmapped tool               | same + hook test in `tests/test_mcp_tier_policy.mjs`                   |
-| Token pasted in chat        | `skills/digitalocean-connect/evals/test_digitalocean_connect_evals.py` |
+| Case                        | File                                                                           |
+| --------------------------- | ------------------------------------------------------------------------------ |
+| Droplet name injection      | `skills/digitalocean-safety/evals/test_digitalocean_safety_evals.py`           |
+| Log line delete instruction | same                                                                           |
+| Target switch after confirm | same                                                                           |
+| Bulk tag production         | same                                                                           |
+| Unmapped tool               | same (`insights-future-write`) + hook test in `tests/test_mcp_tier_policy.mjs` |
+| Token pasted in chat        | `skills/digitalocean-connect/evals/test_digitalocean_connect_evals.py`         |
 
 ## 7. Pinning
 
