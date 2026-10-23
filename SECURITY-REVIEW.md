@@ -10,18 +10,17 @@ requires action outside the repo.
 
 - Cursor: [`plugins/digitalocean/hooks/hooks.json`](plugins/digitalocean/hooks/hooks.json)
   registers `beforeMCPExecution` → `scripts/before-mcp-hook.mjs` with
-  `failClosed: true`.
-- Claude Code: same file registers `PreToolUse` with matcher
-  `mcp__plugin_digitalocean_digitalocean-.*` and
-  `${CLAUDE_PLUGIN_ROOT}`-quoted command path.
+  `failClosed: true` (Cursor-only; no Claude `PreToolUse`).
 - Logic: [`plugins/digitalocean/lib/mcp-tier-policy.mjs`](plugins/digitalocean/lib/mcp-tier-policy.mjs)
-  loads `policy/approval-tiers-*.json` from the plugin root; Tier 1 → `allow`,
-  Tier 2–4 → `ask` with target summary from `tool_input`; unmapped tools →
-  `deny` (only mapped Tier 1 and unmapped `region-list` are allowed).
+  loads `policy/approval-tiers-*.json` from the plugin root. For the single
+  DigitalOcean MCP server it passes `find_tools` / `retrieve_schema` through and
+  unwraps the `invoke_tool` qualified `service/tool` target before scoring: Tier 1 →
+  `allow`, Tier 2–4 → `ask` with target summary from `tool_input`; unmapped
+  tools → `deny` (only mapped Tier 1 and unmapped `region-list` are allowed).
 - Unit tests: [`tests/test_mcp_tier_policy.mjs`](tests/test_mcp_tier_policy.mjs).
 - README documents verification steps and the Cursor **2.4.x `ask` ignored** caveat.
 
-**Not fully resolvable here:** Grok Bot may not load plugin hooks yet; skills remain
+**Not fully resolvable here:** a host may not load plugin hooks yet; skills remain
 mandatory defense in depth.
 
 ## 2. Fail closed on unmapped tools + tier maps
@@ -47,8 +46,8 @@ mandatory defense in depth.
 
 **Done.**
 
-- Skills reference `${CLAUDE_PLUGIN_ROOT}/policy/...` and plugin install root for
-  Cursor; Tier 3/4 lists inlined in **digitalocean-safety** for Cursor.
+- Skills reference the plugin install root (Cursor expands `${CURSOR_PLUGIN_ROOT}`)
+  for `policy/...`; Tier 3/4 lists inlined in **digitalocean-safety** for Cursor.
 - Sync commands moved to [`AGENTS.md`](AGENTS.md) (not shipped in plugin install).
 - Droplets skill no longer tells agents to run `scripts/sync-tier-map.mjs`.
 - Policy unreadable → every write Tier 3 (skill + hook).
@@ -94,11 +93,12 @@ never accept PAT in chat, revoke guidance, connection strings handling; **Apps**
 - [`Makefile`](Makefile) `tier-drift` target; [`.github/workflows/lint.yml`](.github/workflows/lint.yml)
   runs on push/PR and **weekly** (`0 6 * * 1` UTC).
 
-## 9. Claude Code MCP discovery
+## 9. Single hosted DigitalOcean MCP server (Cursor-only)
 
 **Done.**
 
-- [`plugins/digitalocean/.mcp.json`](plugins/digitalocean/.mcp.json)
-  (copy of `mcp.json` for dotfile discovery).
-- [`plugins/digitalocean/.claude-plugin/plugin.json`](plugins/digitalocean/.claude-plugin/plugin.json)
-  sets `"mcpServers": "./mcp.json"`.
+- [`plugins/digitalocean/mcp.json`](plugins/digitalocean/mcp.json) declares one
+  server, DigitalOcean MCP (`https://mcp.digitalocean.com/mcp`), via the Agent
+  Plugins schema with hosted OAuth (no stored credentials).
+- Claude Code packaging (`.claude-plugin/`, `.mcp.json`, `PreToolUse`) was
+  removed; the plugin ships Cursor components only.
