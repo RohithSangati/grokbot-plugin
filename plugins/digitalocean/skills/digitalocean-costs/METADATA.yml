@@ -1,5 +1,0 @@
-maintainer: marketplace-eng@digitalocean.com
-backup_maintainer: valapati@digitalocean.com
-tier: 2
-declared_endpoints:
-  - https://mcp.digitalocean.com/mcp
