@@ -14,23 +14,29 @@ requires action outside the repo.
 - Logic: [`plugins/digitalocean/lib/mcp-tier-policy.mjs`](plugins/digitalocean/lib/mcp-tier-policy.mjs)
   loads `policy/approval-tiers-*.json` from the plugin root. For the single
   DigitalOcean MCP server it passes `find_tools` / `retrieve_schema` through and
-  unwraps the `invoke_tool` qualified `service/tool` target before scoring: Tier 1 →
-  `allow`, Tier 2–4 → `ask` with target summary from `tool_input`; unmapped
-  tools → `deny` (only mapped Tier 1 and unmapped `region-list` are allowed).
+  unwraps the `invoke_tool` qualified `service/tool` target before scoring. A
+  curated map row wins; otherwise the tool is classified generically by verb so
+  every product is covered. Result: Tier 1 → `allow`, Tier 2–4 → `ask` with a
+  target summary from `tool_input`; unknown/non-read verbs default to Tier 2+
+  (`ask`), never a silent run.
 - Unit tests: [`tests/test_mcp_tier_policy.mjs`](tests/test_mcp_tier_policy.mjs).
 - README documents verification steps and the Cursor **2.4.x `ask` ignored** caveat.
 
 **Not fully resolvable here:** a host may not load plugin hooks yet; skills remain
 mandatory defense in depth.
 
-## 2. Fail closed on unmapped tools + tier maps
+## 2. Generic tier classification + curated overrides
 
 **Done.**
 
-- Skill rule: unmapped writes are Tier 3 in
-  [`skills/digitalocean-safety/SKILL.md`](skills/digitalocean-safety/SKILL.md).
-- Hook denies any unmapped tool (no name-pattern bypass); only mapped Tier 1
-  and `region-list` without a row are allowed.
+- Skill rule: unmapped tools are tiered generically by verb in
+  [`skills/digitalocean-safety/SKILL.md`](skills/digitalocean-safety/SKILL.md)
+  (reads → Tier 1; delete/outage → Tier 3; billable create/resize → Tier 4; any
+  other mutation or unknown verb → Tier 2). Destructive verbs win over read
+  verbs in mixed names.
+- The hook never silently runs a non-read tool: anything without a curated row
+  falls to the generic classifier, and unknown verbs default to Tier 2+ (`ask`).
+  This covers every DigitalOcean product, not just mapped services.
 - New maps (upstream `8ce21db`):
   - [`approval-tiers-accounts.json`](plugins/digitalocean/policy/approval-tiers-accounts.json)
     (`key-create` elevated to Tier 3)
